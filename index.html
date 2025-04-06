@@ -319,33 +319,42 @@
         // Show loading spinner
         loadingSpinner.style.display = "block";
 
-        fetch(
-          "https://script.google.com/macros/s/AKfycbypuh0EkbwjwIEeS8e7tV0jUqhWi16vCw-IxgN-vgqjVsdyyTgVg5F7XsRVDVSsSyWD_w/exec",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              to: toInput.value.trim(),
-              for: forInput.value.trim(),
-            }),
-            mode: "cors",
-          }
-        )
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then((data) => {
-            console.log("Tracking successful, count:", data.count);
-          })
-          .catch((error) => {
-            // Don't stop the download if tracking fails
-            console.error("Tracking error:", error);
-          });
+        // Create hidden iframe for form target
+        const targetIframe = document.createElement("iframe");
+        targetIframe.name = "tracking-frame";
+        targetIframe.style.display = "none";
+        document.body.appendChild(targetIframe);
+
+        // Create and submit form
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action =
+          "https://script.google.com/macros/s/AKfycbwP9d9Oailwmwvvr8gnNId-XOzPZwCSx7OBfJqAMXJTZklVCK_BGrYzBWicujXf2ElCRw/exec";
+        form.target = "tracking-frame";
+
+        // Add to input
+        const toField = document.createElement("input");
+        toField.type = "hidden";
+        toField.name = "to";
+        toField.value = toInput.value.trim();
+        form.appendChild(toField);
+
+        // Add for input
+        const forField = document.createElement("input");
+        forField.type = "hidden";
+        forField.name = "for";
+        forField.value = forInput.value.trim();
+        form.appendChild(forField);
+
+        // Add form to page and submit
+        document.body.appendChild(form);
+        form.submit();
+
+        // Clean up (after a delay to ensure form submission)
+        setTimeout(() => {
+          document.body.removeChild(form);
+          document.body.removeChild(targetIframe);
+        }, 1000);
 
         try {
           // Create temporary link element
