@@ -2,21 +2,25 @@
 <html>
   <head>
     <title>Shoutout Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       body {
         font-family: Arial, sans-serif;
-        max-width: 100%;
-        margin: 0 auto;
-        padding: 10px;
+        margin: 0;
+        padding: 0;
         display: flex;
         flex-direction: column;
-        height: 98vh;
+        height: 100vh;
         overflow: hidden;
+        box-sizing: border-box;
+      }
+      * {
+        box-sizing: border-box;
       }
       h1 {
         text-align: center;
-        margin: 0 0 10px 0;
-        font-size: 1.5em;
+        margin: 10px 0;
+        font-size: 1.8em;
       }
       h2 {
         margin: 0 0 8px 0;
@@ -25,14 +29,16 @@
       .container {
         display: flex;
         flex: 1;
-        gap: 10px;
-        height: calc(100% - 40px);
+        gap: 15px;
+        padding: 0 10px 10px 10px;
+        flex-direction: row;
+        height: calc(100% - 60px);
+        max-height: calc(100% - 60px);
       }
       .left-column {
         display: flex;
         flex-direction: column;
         width: 30%;
-        gap: 10px;
       }
       .right-column {
         width: 70%;
@@ -40,12 +46,15 @@
         flex-direction: column;
       }
       .section {
-        padding: 10px;
+        padding: 15px;
         border: 1px solid #ddd;
-        border-radius: 5px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
       }
       .input-section {
         flex: 1;
+        display: flex;
+        flex-direction: column;
       }
       .canvas-section {
         flex: 1;
@@ -55,23 +64,29 @@
       }
       .canvas-container {
         flex: 1;
-        overflow: auto;
+        overflow: hidden;
         display: flex;
         justify-content: center;
         align-items: center;
       }
+      .form-fields {
+        flex: 1;
+        overflow-y: auto;
+      }
       label {
         display: block;
-        margin-bottom: 3px;
+        margin-bottom: 5px;
         font-weight: bold;
-        font-size: 0.9em;
+        font-size: 1em;
       }
       input,
       textarea {
         width: 100%;
-        padding: 6px;
-        margin-bottom: 8px;
-        box-sizing: border-box;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1em;
       }
       textarea {
         height: 80px;
@@ -80,17 +95,20 @@
       button {
         background-color: #4caf50;
         color: white;
-        padding: 8px 12px;
+        padding: 10px;
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        margin-right: 8px;
-        font-size: 0.9em;
+        font-size: 1em;
         width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        transition: background-color 0.2s;
+      }
+      button:hover {
+        background-color: #3e8e41;
       }
       canvas {
         border: 1px solid #ccc;
@@ -112,6 +130,91 @@
           transform: rotate(360deg);
         }
       }
+
+      /* Media Queries for Responsive Design */
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column;
+          padding: 0 10px 10px 10px;
+        }
+        .left-column,
+        .right-column {
+          width: 100%;
+        }
+        h1 {
+          font-size: 1.5em;
+          margin: 8px 0;
+        }
+        .left-column {
+          height: auto;
+          max-height: none;
+          flex-shrink: 0;
+        }
+        .input-section {
+          padding: 10px;
+        }
+        .right-column {
+          flex: 1;
+          height: auto;
+          max-height: none;
+        }
+        .canvas-section {
+          padding: 10px;
+          flex: 1;
+        }
+        textarea {
+          height: 60px;
+        }
+      }
+
+      /* Small screens / phones */
+      @media (max-width: 480px) {
+        h1 {
+          font-size: 1.3em;
+          margin: 5px 0;
+        }
+        h2 {
+          font-size: 1.1em;
+          margin: 0 0 5px 0;
+        }
+        .container {
+          gap: 8px;
+          padding: 0 5px 5px 5px;
+        }
+        .section {
+          padding: 8px;
+        }
+        .left-column {
+          margin-bottom: 0;
+        }
+        .input-section {
+          padding: 8px;
+        }
+        .form-fields {
+          margin-bottom: 0;
+        }
+        label {
+          margin-bottom: 2px;
+          font-size: 0.9em;
+        }
+        input,
+        textarea,
+        button {
+          font-size: 16px;
+          padding: 6px;
+          margin-bottom: 6px;
+        }
+        textarea {
+          height: 40px;
+        }
+        button {
+          padding: 8px 0;
+          margin-bottom: 0;
+        }
+        .canvas-container {
+          padding: 0;
+        }
+      }
     </style>
   </head>
   <body>
@@ -121,36 +224,42 @@
       <div class="left-column">
         <div class="section input-section">
           <h2>Create Shoutout</h2>
-          <label for="toInput">TO:</label>
-          <input type="text" id="toInput" placeholder="Enter recipient name" />
+          <div class="form-fields">
+            <label for="toInput">TO:</label>
+            <input
+              type="text"
+              id="toInput"
+              placeholder="Enter recipient name"
+            />
 
-          <label for="forInput">FOR:</label>
-          <textarea id="forInput" placeholder="Enter your message"></textarea>
+            <label for="forInput">FOR:</label>
+            <textarea id="forInput" placeholder="Enter your message"></textarea>
 
-          <button id="downloadBtn">
-            <svg
-              class="spinner"
-              id="loadingSpinner"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              />
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8H4z"
-              />
-            </svg>
-            Download Shoutout
-          </button>
+            <button id="downloadBtn">
+              <svg
+                class="spinner"
+                id="loadingSpinner"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                />
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                />
+              </svg>
+              Download Shoutout
+            </button>
+          </div>
         </div>
       </div>
 
