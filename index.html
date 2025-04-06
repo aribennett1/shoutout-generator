@@ -319,6 +319,29 @@
         // Show loading spinner
         loadingSpinner.style.display = "block";
 
+        fetch(
+          "https://script.google.com/macros/s/AKfycbwWqvhmwuOFbfKeNYprjJNb_F9kvAhUp0bfsgbHh-VBg542W9GA0OAXWHLkl7RY1syd-w/exec",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              to: toInput.value.trim(),
+              for: forInput.value.trim(),
+            }),
+            mode: "cors",
+          }
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Tracking successful, count:", data.count);
+          })
+          .catch((error) => {
+            // Don't stop the download if tracking fails
+            console.error("Tracking error:", error);
+          });
+
         try {
           // Create temporary link element
           const link = document.createElement("a");
