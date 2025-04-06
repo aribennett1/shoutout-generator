@@ -320,7 +320,7 @@
         loadingSpinner.style.display = "block";
 
         fetch(
-          "https://script.google.com/macros/s/AKfycbwWqvhmwuOFbfKeNYprjJNb_F9kvAhUp0bfsgbHh-VBg542W9GA0OAXWHLkl7RY1syd-w/exec",
+          "https://script.google.com/macros/s/AKfycbypuh0EkbwjwIEeS8e7tV0jUqhWi16vCw-IxgN-vgqjVsdyyTgVg5F7XsRVDVSsSyWD_w/exec",
           {
             method: "POST",
             headers: {
@@ -333,7 +333,12 @@
             mode: "cors",
           }
         )
-          .then((response) => response.json())
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
           .then((data) => {
             console.log("Tracking successful, count:", data.count);
           })
