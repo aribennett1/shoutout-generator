@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Shoutout Generator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        height: 98vh;
+        overflow: hidden;
+      }
+      h1 {
+        text-align: center;
+        margin: 0 0 10px 0;
+        font-size: 1.5em;
+      }
+      h2 {
+        margin: 0 0 8px 0;
+        font-size: 1.2em;
+      }
+      .container {
+        display: flex;
+        flex: 1;
+        gap: 10px;
+        height: calc(100% - 40px);
+      }
+      .left-column {
+        display: flex;
+        flex-direction: column;
+        width: 30%;
+        gap: 10px;
+      }
+      .right-column {
+        width: 70%;
+        display: flex;
+        flex-direction: column;
+      }
+      .section {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .input-section {
+        flex: 1;
+      }
+      .template-section {
+        flex: 0 0 auto;
+      }
+      .canvas-section {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .canvas-container {
+        flex: 1;
+        overflow: auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      label {
+        display: block;
+        margin-bottom: 3px;
+        font-weight: bold;
+        font-size: 0.9em;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 6px;
+        margin-bottom: 8px;
+        box-sizing: border-box;
+      }
+      textarea {
+        height: 80px;
+        resize: none;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 8px;
+        font-size: 0.9em;
+      }
+      canvas {
+        border: 1px solid #ccc;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+      #status {
+        margin-top: 8px;
+        padding: 8px;
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        font-size: 0.8em;
+        overflow-y: auto;
+        max-height: 100px;
+      }
+      .button-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      #custom-file-button {
+        background-color: #3f51b5;
+        display: inline-block;
+        width: 100%;
+      }
+      #templateInput {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Shoutout Generator</h1>
+
+    <div class="container">
+      <div class="left-column">
+        <div class="section input-section">
+          <h2>Create Shoutout</h2>
+          <label for="toInput">TO:</label>
+          <input type="text" id="toInput" placeholder="Enter recipient name" />
+
+          <label for="forInput">FOR:</label>
+          <textarea id="forInput" placeholder="Enter your message"></textarea>
+
+          <div class="button-row">
+            <button id="downloadBtn">Download</button>
+          </div>
+
+          <div id="status"></div>
+          <div class="section template-section">
+            <label for="templateInput">Template Image</label>
+            <input
+              style="display: none"
+              type="file"
+              id="templateInput"
+              accept="image/*"
+            />
+            <button id="custom-file-button">Select Image</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <div class="section canvas-section">
+          <h2>Preview</h2>
+          <div class="canvas-container">
+            <canvas id="shoutoutCanvas" width="800" height="600"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Elements
+      const templateInput = document.getElementById("templateInput");
+      const toInput = document.getElementById("toInput");
+      const forInput = document.getElementById("forInput");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const canvas = document.getElementById("shoutoutCanvas");
+      const ctx = canvas.getContext("2d");
+      const status = document.getElementById("status");
+      const customFileButton = document.getElementById("custom-file-button");
+
+      // Global variables
+      let templateImage = null;
+      let debounceTimeout = null;
+
+      // Status update function
+      function updateStatus(message) {
+        status.innerHTML += message + "<br>";
+        status.scrollTop = status.scrollHeight;
+        console.log(message);
+      }
+
+      // Debounce function to prevent too many renders
+      function debounce(func, delay) {
+        return function () {
+          clearTimeout(debounceTimeout);
+          debounceTimeout = setTimeout(
+            () => func.apply(this, arguments),
+            delay
+          );
+        };
+      }
+
+      // Generate preview function
+      function generatePreview() {
+        if (!templateImage) {
+          return;
+        }
+
+        const toText = toInput.value.trim();
+        const forText = forInput.value.trim();
+
+        // Reset canvas with template
+        canvas.width = templateImage.width;
+        canvas.height = templateImage.height;
+        ctx.drawImage(templateImage, 0, 0);
+
+        // Only proceed if we have text to render
+        if (!toText && !forText) {
+          return;
+        }
+
+        // Text settings - adjusted for better alignment
+        const fontSize = Math.max(20, Math.floor(canvas.height * 0.028));
+        ctx.font = `${fontSize}px Arial`;
+        ctx.fillStyle = "black";
+
+        // Position calculations - adjusted based on the template image lines
+        // TO field - positioned to align with the first line
+        const toX = 247;
+        const toY = 747;
+
+        // FOR field - positioned to align with the second line
+        const forX = 155; // Adjusted to start after "FOR:"
+        const forY = 822; // Adjusted to be on the first line
+
+        // Draw TO text if present
+        if (toText) {
+          ctx.fillText(toText, toX, toY);
+        }
+
+        // Draw FOR text with wrapping if present
+        if (forText) {
+          const firstLineMaxWidth = canvas.width - 150; // Max width for first line
+          const subsequentLinesMaxWidth = canvas.width - 40; // Max width for subsequent lines
+          const lineHeight = Math.round(canvas.height * 0.0688); // Adjusted to match template line spacing
+          wrapText(
+            ctx,
+            forText,
+            forX,
+            forY,
+            firstLineMaxWidth,
+            subsequentLinesMaxWidth,
+            lineHeight
+          );
+        }
+      }
+
+      // Create a debounced version of the preview function
+      const debouncedPreview = debounce(generatePreview, 100);
+
+      // Add event listeners to input fields for live preview
+      toInput.addEventListener("input", debouncedPreview);
+      forInput.addEventListener("input", debouncedPreview);
+
+      // Custom file input handler
+      customFileButton.addEventListener("click", function () {
+        templateInput.click();
+      });
+
+      // Load saved template on page load
+      window.addEventListener("load", function () {
+        const savedTemplate = localStorage.getItem("shoutoutTemplate");
+        if (savedTemplate) {
+          templateImage = new Image();
+          templateImage.onload = function () {
+            updateStatus(
+              `Loaded saved template: ${templateImage.width}x${templateImage.height}`
+            );
+
+            // Update button text
+            customFileButton.textContent = "Switch Image";
+
+            // Resize canvas to match image
+            canvas.width = templateImage.width;
+            canvas.height = templateImage.height;
+
+            // Draw template on canvas
+            ctx.drawImage(templateImage, 0, 0);
+
+            // Generate preview with current text
+            generatePreview();
+          };
+          templateImage.src = savedTemplate;
+        } else {
+          updateStatus("No saved template found. Please upload an image.");
+          customFileButton.textContent = "Select Image";
+        }
+      });
+
+      // Load template image
+      templateInput.addEventListener("change", function (e) {
+        if (e.target.files && e.target.files[0]) {
+          const file = e.target.files[0];
+          const reader = new FileReader();
+
+          reader.onload = function (event) {
+            templateImage = new Image();
+            templateImage.onload = function () {
+              updateStatus(
+                `Template loaded: ${templateImage.width}x${templateImage.height}`
+              );
+
+              // Update button text
+              customFileButton.textContent = "Switch Image";
+
+              // Resize canvas to match image
+              canvas.width = templateImage.width;
+              canvas.height = templateImage.height;
+
+              // Draw template on canvas
+              ctx.drawImage(templateImage, 0, 0);
+
+              // Save to localStorage
+              localStorage.setItem("shoutoutTemplate", templateImage.src);
+
+              // Generate preview with current text
+              generatePreview();
+            };
+            templateImage.src = event.target.result;
+          };
+
+          reader.readAsDataURL(file);
+          updateStatus(`File selected: ${file.name}`);
+        }
+      });
+
+      // Text wrapping function
+      function wrapText(
+        context,
+        text,
+        x,
+        y,
+        firstLineMaxWidth,
+        subsequentLinesMaxWidth,
+        lineHeight
+      ) {
+        const words = text.split(" ");
+        let line = "";
+        let lineCount = 0;
+
+        // Use different X positions for first line vs subsequent lines
+        const firstLineX = x; // First line is indented (original x position)
+        const subsequentLinesX = 30; // Subsequent lines are not indented (adjust as needed)
+
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + " ";
+          const metrics = context.measureText(testLine);
+          const testWidth = metrics.width;
+
+          // Use appropriate max width based on current line
+          const currentMaxWidth =
+            lineCount === 0 ? firstLineMaxWidth : subsequentLinesMaxWidth;
+
+          if (testWidth > currentMaxWidth && n > 0) {
+            // Use first line position for line 0
+            const currentX = lineCount === 0 ? firstLineX : subsequentLinesX;
+            context.fillText(line, currentX, y);
+            line = words[n] + " ";
+            y += lineHeight;
+            lineCount++;
+          } else {
+            line = testLine;
+          }
+        }
+
+        // Draw final line (could be the first if text is short)
+        // Use appropriate X position based on line count
+        const finalX = lineCount === 0 ? firstLineX : subsequentLinesX;
+        context.fillText(line, finalX, y);
+      }
+
+      // Download shoutout
+      downloadBtn.addEventListener("click", function () {
+        updateStatus("Preparing download...");
+
+        try {
+          // Create temporary link element
+          const link = document.createElement("a");
+          link.download = "shoutout.png";
+
+          // Convert canvas to data URL
+          const dataUrl = canvas.toDataURL("image/png");
+          link.href = dataUrl;
+
+          // Trigger download
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          updateStatus("Download started!");
+        } catch (error) {
+          updateStatus(`Error during download: ${error.message}`);
+        }
+      });
+    </script>
+  </body>
+</html>
